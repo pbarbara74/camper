@@ -2,15 +2,30 @@
   "name": "Lista camper",
   "short_name": "Camper",
   "description": "Checklist e documenti dei viaggi in camper",
-  "start_url": "./avvio.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#22252A",
   "theme_color": "#0B6140",
   "icons": [
-    { "src": "./icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "./icona-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icona-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icona-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

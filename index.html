@@ -4,47 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lista camper</title>
-
-<!-- ▼▼▼ UNICA RIGA DA MODIFICARE: incolla qui l'URL /exec del tuo Web App ▼▼▼ -->
-<script>const URL_APP = "https://script.google.com/macros/s/AKfycby8BzYi93FBokRPOZPc4-ogqXTIl4v6hYVcFBPV_iQ/exec";</script>
-
+<!-- ▼▼▼ UNICA RIGA DA MODIFICARE: l'URL /exec del Web App (deve finire in /exec) ▼▼▼ -->
+<script>const URL_APP = "https://script.google.com/macros/s/AKfycby.../exec";</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Camper">
 <meta name="theme-color" content="#0B6140">
 <style>
   html,body{margin:0;height:100%;background:#22252A;color:#F2F4F0;
             font-family:system-ui,-apple-system,sans-serif}
-  iframe{border:0;width:100%;height:100%;display:block}
-  #ripiego{display:none;padding:40px 24px;max-width:420px;margin:0 auto;line-height:1.5;text-align:center}
-  #ripiego a{display:inline-block;margin-top:14px;background:#0B6140;color:#fff;
-             text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600}
+  main{padding:40px 24px;max-width:420px;margin:0 auto;line-height:1.5;text-align:center}
+  a{display:inline-block;margin-top:14px;background:#0B6140;color:#fff;text-decoration:none;
+    padding:12px 20px;border-radius:6px;font-weight:600}
 </style>
 </head>
 <body>
-  <iframe id="app" title="Camper" allow="clipboard-write"></iframe>
-  <div id="ripiego">
-    <h2>Serve un accesso</h2>
-    <p>Apri l'app una volta nel browser e accedi con il tuo account Google:
-       da lì in poi funzionerà anche da questa icona.</p>
-    <a id="diretto" href="#">Apri nel browser</a>
-  </div>
+  <main>
+    <p>Apro la lista…</p>
+    <a id="diretto" href="#">Apri adesso</a>
+  </main>
 <script>
-  document.getElementById("app").src = URL_APP;
   document.getElementById("diretto").href = URL_APP;
-  // Se il frame non carica entro qualche secondo (login richiesto), mostra il ripiego.
-  setTimeout(function(){
-    try {
-      if(!document.getElementById("app").contentWindow.length &&
-         document.getElementById("app").clientHeight < 50){ throw 0; }
-    } catch(e){
-      document.getElementById("app").style.display = "none";
-      document.getElementById("ripiego").style.display = "block";
-    }
-  }, 6000);
+  location.replace(URL_APP);
 </script>
 </body>
 </html>

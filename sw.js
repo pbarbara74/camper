@@ -2,7 +2,7 @@
 // (senza un fetch handler l'evento beforeinstallprompt non viene mai emesso)
 // e a mostrare qualcosa di sensato quando il telefono e' offline.
 
-const CACHE = "lista-camper-v1";   // <-- alza il numero quando cambi i file
+const CACHE = "lista-camper-v2";   // <-- alza il numero quando cambi i file
 const ASSETS = [
   "./",
   "./index.html",
@@ -38,6 +38,12 @@ self.addEventListener("fetch", event => {
     return;
   }
   if (richiesta.method !== "GET") {
+    return;
+  }
+
+  // config.json non va MAI messo in cache: e' il file che porta l'URL aggiornato
+  // del deployment Apps Script. Lasciato passare direttamente alla rete.
+  if (new URL(richiesta.url).pathname.endsWith("/config.json")) {
     return;
   }
 

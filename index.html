@@ -2,27 +2,23 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
-
   <title>Lista camper</title>
-
+  <!-- ▼▼▼ UNICA RIGA DA MODIFICARE: l'URL /exec del Web App (deve finire in /exec) ▼▼▼ -->
   <script>
     const URL_APP =
       "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec";
   </script>
-
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Camper">
   <meta name="theme-color" content="#0B6140">
-
   <style>
     html,
     body {
@@ -32,7 +28,6 @@
       color: #f2f4f0;
       font-family: system-ui, -apple-system, sans-serif;
     }
-
     main {
       padding: 48px 24px;
       max-width: 420px;
@@ -40,13 +35,15 @@
       text-align: center;
       line-height: 1.5;
     }
-
     img {
       width: 120px;
       height: 120px;
       border-radius: 24px;
     }
-
+    h1 {
+      font-size: 1.5rem;
+      margin: 20px 0 8px;
+    }
     a,
     button {
       display: block;
@@ -63,78 +60,112 @@
       text-decoration: none;
       cursor: pointer;
     }
-
     button {
       background: #19794f;
     }
-
     #installa {
       display: none;
     }
+    #istruzioni-ios {
+      display: none;
+      margin-top: 22px;
+      padding: 14px 16px;
+      border: 1px solid #3a3f47;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      text-align: left;
+      color: #cfd6d1;
+    }
+    #istruzioni-ios b {
+      color: #f2f4f0;
+    }
   </style>
 </head>
-
 <body>
   <main>
     <img src="./icon-192.png" alt="Icona Lista camper">
-
     <h1>Lista camper</h1>
-
     <p id="messaggio">
       Installa l’app oppure apri direttamente la lista.
     </p>
-
     <button id="installa" type="button">
       Installa app
     </button>
-
     <a id="diretto" href="#">
       Apri la lista
     </a>
+    <p id="istruzioni-ios">
+      Per avere l’icona sulla schermata Home: tocca <b>Condividi</b> in fondo a
+      Safari, poi <b>Aggiungi a Home</b>. Su iPhone non esiste un pulsante di
+      installazione automatico.
+    </p>
   </main>
 
   <script>
     const pulsanteApri = document.getElementById("diretto");
     const pulsanteInstalla = document.getElementById("installa");
     const messaggio = document.getElementById("messaggio");
+    const istruzioniIos = document.getElementById("istruzioni-ios");
 
     pulsanteApri.href = URL_APP;
 
+    // --- Service worker: senza un fetch handler Chrome non emette mai
+    //     beforeinstallprompt, quindi il pulsante "Installa app" resterebbe nascosto.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(errore => {
+          console.warn("Service worker non registrato:", errore);
+        });
+      });
+    }
+
+    // --- Installazione su Android / Chrome
     let richiestaInstallazione = null;
 
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       richiestaInstallazione = event;
       pulsanteInstalla.style.display = "block";
+      istruzioniIos.style.display = "none";
     });
 
     pulsanteInstalla.addEventListener("click", async () => {
       if (!richiestaInstallazione) {
         return;
       }
-
       richiestaInstallazione.prompt();
-
       const risultato = await richiestaInstallazione.userChoice;
-
       if (risultato.outcome === "accepted") {
         messaggio.textContent = "App installata.";
         pulsanteInstalla.style.display = "none";
       }
-
       richiestaInstallazione = null;
     });
 
+    window.addEventListener("appinstalled", () => {
+      messaggio.textContent = "App installata.";
+      pulsanteInstalla.style.display = "none";
+    });
+
+    // --- Avvio dall'icona in schermata Home
     const avviataComeApp =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
 
     if (avviataComeApp) {
       messaggio.textContent = "Apro la lista…";
-
+      pulsanteApri.textContent = "Apri adesso";
       setTimeout(() => {
         window.location.replace(URL_APP);
       }, 400);
+    } else {
+      // Su iOS beforeinstallprompt non esiste: mostra la procedura manuale.
+      const isIos =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (isIos) {
+        istruzioniIos.style.display = "block";
+      }
     }
   </script>
 </body>

@@ -1,33 +1,141 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lista camper</title>
-<!-- ▼▼▼ UNICA RIGA DA MODIFICARE: l'URL /exec del Web App (deve finire in /exec) ▼▼▼ -->
-<script>const URL_APP = "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec";</script>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Camper">
-<meta name="theme-color" content="#0B6140">
-<style>
-  html,body{margin:0;height:100%;background:#22252A;color:#F2F4F0;
-            font-family:system-ui,-apple-system,sans-serif}
-  main{padding:40px 24px;max-width:420px;margin:0 auto;line-height:1.5;text-align:center}
-  a{display:inline-block;margin-top:14px;background:#0B6140;color:#fff;text-decoration:none;
-    padding:12px 20px;border-radius:6px;font-weight:600}
-</style>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <title>Lista camper</title>
+
+  <script>
+    const URL_APP =
+      "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec";
+  </script>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Camper">
+  <meta name="theme-color" content="#0B6140">
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #22252a;
+      color: #f2f4f0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    main {
+      padding: 48px 24px;
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    img {
+      width: 120px;
+      height: 120px;
+      border-radius: 24px;
+    }
+
+    a,
+    button {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px 20px;
+      border: 0;
+      border-radius: 8px;
+      background: #0b6140;
+      color: white;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button {
+      background: #19794f;
+    }
+
+    #installa {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
   <main>
-    <p>Apro la lista…</p>
-    <a id="diretto" href="#">Apri adesso</a>
+    <img src="./icon-192.png" alt="Icona Lista camper">
+
+    <h1>Lista camper</h1>
+
+    <p id="messaggio">
+      Installa l’app oppure apri direttamente la lista.
+    </p>
+
+    <button id="installa" type="button">
+      Installa app
+    </button>
+
+    <a id="diretto" href="#">
+      Apri la lista
+    </a>
   </main>
-<script>
-  document.getElementById("diretto").href = URL_APP;
-  location.replace(URL_APP);
-</script>
+
+  <script>
+    const pulsanteApri = document.getElementById("diretto");
+    const pulsanteInstalla = document.getElementById("installa");
+    const messaggio = document.getElementById("messaggio");
+
+    pulsanteApri.href = URL_APP;
+
+    let richiestaInstallazione = null;
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      richiestaInstallazione = event;
+      pulsanteInstalla.style.display = "block";
+    });
+
+    pulsanteInstalla.addEventListener("click", async () => {
+      if (!richiestaInstallazione) {
+        return;
+      }
+
+      richiestaInstallazione.prompt();
+
+      const risultato = await richiestaInstallazione.userChoice;
+
+      if (risultato.outcome === "accepted") {
+        messaggio.textContent = "App installata.";
+        pulsanteInstalla.style.display = "none";
+      }
+
+      richiestaInstallazione = null;
+    });
+
+    const avviataComeApp =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+
+    if (avviataComeApp) {
+      messaggio.textContent = "Apro la lista…";
+
+      setTimeout(() => {
+        window.location.replace(URL_APP);
+      }, 400);
+    }
+  </script>
 </body>
 </html>

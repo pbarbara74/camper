@@ -1,0 +1,5 @@
+{
+  "url_app": "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec",
+  "aggiornato": "2026-08-05",
+  "nota": "Unico file da modificare quando cambia il deployment Apps Script. Deve finire in /exec."
+}

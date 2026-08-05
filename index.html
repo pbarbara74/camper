@@ -9,9 +9,143 @@
   <title>Lista camper</title>
   <!-- ▼▼▼ UNICA RIGA DA MODIFICARE: l'URL /exec del Web App (deve finire in /exec) ▼▼▼ -->
   <script>
-    const URL_APP =
-      "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec";
-  </script>
+  const pulsanteApri = document.getElementById("diretto");
+  const pulsanteInstalla = document.getElementById("installa");
+  const messaggio = document.getElementById("messaggio");
+  const istruzioniIos = document.getElementById("istruzioni-ios");
+
+  let urlApp = null;
+
+  async function caricaConfigurazione() {
+    try {
+      const risposta = await fetch(
+        `./app-config.json?cacheBust=${Date.now()}`,
+        {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache"
+          }
+        }
+      );
+
+      if (!risposta.ok) {
+        throw new Error(
+          `Configurazione non disponibile: HTTP ${risposta.status}`
+        );
+      }
+
+      const configurazione = await risposta.json();
+
+      if (
+        !configurazione.urlApp ||
+        !configurazione.urlApp.startsWith("https://") ||
+        !configurazione.urlApp.endsWith("/exec")
+      ) {
+        throw new Error("URL dell'app non valido");
+      }
+
+      urlApp = configurazione.urlApp;
+      pulsanteApri.href = urlApp;
+
+      return urlApp;
+    } catch (errore) {
+      console.error("Errore configurazione:", errore);
+
+      messaggio.textContent =
+        "Impossibile recuperare l'indirizzo aggiornato dell'app.";
+
+      pulsanteApri.style.display = "none";
+
+      throw errore;
+    }
+  }
+
+  // Service worker
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const registrazione =
+          await navigator.serviceWorker.register("./sw.js", {
+            updateViaCache: "none"
+          });
+
+        await registrazione.update();
+      } catch (errore) {
+        console.warn(
+          "Service worker non registrato:",
+          errore
+        );
+      }
+    });
+  }
+
+  // Installazione Android / Chrome
+  let richiestaInstallazione = null;
+
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+
+    richiestaInstallazione = event;
+    pulsanteInstalla.style.display = "block";
+    istruzioniIos.style.display = "none";
+  });
+
+  pulsanteInstalla.addEventListener("click", async () => {
+    if (!richiestaInstallazione) {
+      return;
+    }
+
+    richiestaInstallazione.prompt();
+
+    const risultato =
+      await richiestaInstallazione.userChoice;
+
+    if (risultato.outcome === "accepted") {
+      messaggio.textContent = "App installata.";
+      pulsanteInstalla.style.display = "none";
+    }
+
+    richiestaInstallazione = null;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    messaggio.textContent = "App installata.";
+    pulsanteInstalla.style.display = "none";
+  });
+
+  const avviataComeApp =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  async function avvia() {
+    try {
+      await caricaConfigurazione();
+
+      if (avviataComeApp) {
+        messaggio.textContent = "Apro la lista…";
+        pulsanteApri.textContent = "Apri adesso";
+
+        window.location.replace(urlApp);
+        return;
+      }
+
+      const isIos =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (
+          navigator.platform === "MacIntel" &&
+          navigator.maxTouchPoints > 1
+        );
+
+      if (isIos) {
+        istruzioniIos.style.display = "block";
+      }
+    } catch {
+      // L'errore è già mostrato da caricaConfigurazione().
+    }
+  }
+
+  avvia();
+</script>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./favicon.ico" sizes="any">
   <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png">

@@ -6,10 +6,11 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
-  <title>Camper Journey</title>
-  <!-- ▼▼▼ UNICA RIGA DA MODIFICARE: l'URL /exec del Web App (deve finire in /exec) ▼▼▼ -->
+  <title>Lista camper</title>
+  <!-- L'URL del Web App NON sta piu' qui: si modifica in config.json, che non
+       viene mai messo in cache. Quello sotto e' solo l'ultima rete di sicurezza. -->
   <script>
-    const URL_APP =
+    const URL_RISERVA =
       "https://script.google.com/macros/s/AKfycbzGLx-F8GuNXstWxT0iUqnnvAi6tZ3OxtxNPOC3FVTbmzttLbFdIuWZ0UeyR2fWHXI/exec";
   </script>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -91,7 +92,7 @@
     <button id="installa" type="button">
       Installa app
     </button>
-    <a id="diretto" href="#">
+    <a id="diretto" href="#" rel="noopener">
       Apri la lista
     </a>
     <p id="istruzioni-ios">
@@ -107,7 +108,30 @@
     const messaggio = document.getElementById("messaggio");
     const istruzioniIos = document.getElementById("istruzioni-ios");
 
-    pulsanteApri.href = URL_APP;
+    const CHIAVE_URL = "lista-camper:url_app";
+
+    // --- Risoluzione dell'URL: config.json (sempre fresco) -> ultimo valore noto
+    //     salvato sul telefono -> URL_RISERVA scritto qui sopra.
+    async function risolviUrlApp() {
+      try {
+        const risposta = await fetch("./config.json?t=" + Date.now(), {
+          cache: "no-store"
+        });
+        if (!risposta.ok) {
+          throw new Error("HTTP " + risposta.status);
+        }
+        const config = await risposta.json();
+        const url = (config.url_app || "").trim();
+        if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) {
+          throw new Error("url_app non valido in config.json");
+        }
+        localStorage.setItem(CHIAVE_URL, url);
+        return url;
+      } catch (errore) {
+        console.warn("config.json non leggibile:", errore);
+        return localStorage.getItem(CHIAVE_URL) || URL_RISERVA;
+      }
+    }
 
     // --- Service worker: senza un fetch handler Chrome non emette mai
     //     beforeinstallprompt, quindi il pulsante "Installa app" resterebbe nascosto.
@@ -147,18 +171,25 @@
       pulsanteInstalla.style.display = "none";
     });
 
-    // --- Avvio dall'icona in schermata Home
+    // --- Avvio
     const avviataComeApp =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
 
-    if (avviataComeApp) {
-      messaggio.textContent = "Apro la lista…";
-      pulsanteApri.textContent = "Apri adesso";
-      setTimeout(() => {
-        window.location.replace(URL_APP);
-      }, 400);
-    } else {
+    (async () => {
+      if (avviataComeApp) {
+        messaggio.textContent = "Apro la lista\u2026";
+        pulsanteApri.textContent = "Apri adesso";
+      }
+
+      const urlApp = await risolviUrlApp();
+      pulsanteApri.href = urlApp;
+
+      if (avviataComeApp) {
+        window.location.replace(urlApp);
+        return;
+      }
+
       // Su iOS beforeinstallprompt non esiste: mostra la procedura manuale.
       const isIos =
         /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -166,7 +197,7 @@
       if (isIos) {
         istruzioniIos.style.display = "block";
       }
-    }
+    })();
   </script>
 </body>
 </html>
